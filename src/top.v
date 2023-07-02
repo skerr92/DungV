@@ -22,12 +22,12 @@ module top(input P4, output LED_R, output LED_G, output LED_B,
            P42,
            P43);
 
-    reg [15:0] counter;
+    reg [31:0] counter;
     reg [5:0] pc;
-    wire clk;
-    assign LED_R = counter[7];
-    assign LED_G = counter[6];
-    assign LED_B = counter[5];
+    wire clk, sclk;
+    assign LED_R = ~counter[25];
+    assign LED_G = ~counter[24];
+    assign LED_B = ~counter[23];
     wire [5:0] regA;
     wire [5:0] regB;
     reg [15:0] operA;
@@ -57,11 +57,24 @@ module top(input P4, output LED_R, output LED_G, output LED_B,
     end
 
     //10khz used for low power applications (or sleep mode)
-    SB_LFOSC SB_LFOSC_inst(
-        .CLKLFEN(1),
-        .CLKLFPU(1),
-        .CLKLF(clk)
+    SB_HFOSC SB_HFOSC_inst(
+        .CLKHFEN(1),
+        .CLKHFPU(1),
+        .CLKHF(sclk)
     );
+    SB_PLL40_CORE #(
+      .FEEDBACK_PATH("SIMPLE"),
+      .PLLOUT_SELECT("GENCLK"),
+      .DIVR(4'b0000),
+      .DIVF(7'b0001111),
+      .DIVQ(3'b101),
+      .FILTER_RANGE(3'b100),
+    ) SB_PLL40_CORE_inst (
+      .RESETB(1'b1),
+      .BYPASS(1'b0),
+      .PLLOUTCORE(clk),
+      .REFERENCECLK(sclk)
+   );
     
     mem mem(.clk(clk),
             .wr_en(we),
@@ -177,13 +190,6 @@ module top(input P4, output LED_R, output LED_G, output LED_B,
                 out <= alu_out;
             end
             'hB : begin 
-                operA <= reg_file[regA];
-                operB <= regB;
-                alu_en <= 1;
-                reg_file[regA] <= alu_out;
-                out <= alu_out;
-            end
-            'hC : begin 
                 operA <= reg_file[regA];
                 operB <= regB;
                 alu_en <= 1;

@@ -26,7 +26,6 @@ module alu(input wire clk,
             end
             10: q <= ~operandA; // not operand A
             11: q <= operandA * operandB;
-            12: q <= operandA / operandB;
             default: q <= 0;//no op
             endcase
         end
