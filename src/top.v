@@ -176,6 +176,20 @@ module top(input P4, output LED_R, output LED_G, output LED_B,
                 reg_file[regB] <= alu_out;
                 out <= alu_out;
             end
+            'hB : begin 
+                operA <= reg_file[regA];
+                operB <= regB;
+                alu_en <= 1;
+                reg_file[regA] <= alu_out;
+                out <= alu_out;
+            end
+            'hC : begin 
+                operA <= reg_file[regA];
+                operB <= regB;
+                alu_en <= 1;
+                reg_file[regA] <= alu_out;
+                out <= alu_out;
+            end
             default:
                 out <= 16'h0;
             endcase

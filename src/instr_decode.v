@@ -44,7 +44,7 @@ module instr_decode(input wire clk,
             end
             3: begin
                 mem_op <= instruction[2:3];
-                if (mem_op === 1 || mem_op === 2) begin
+                if (mem_op == 1 || mem_op == 2) begin
                     rega <= instruction[4:9];
                     mem_addr <= instruction[10:19];
                     intermed <= 0;
