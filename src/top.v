@@ -23,7 +23,7 @@ module top(input P4, output LED_R, output LED_G, output LED_B,
            P43);
 
     reg [31:0] counter;
-    reg [5:0] pc;
+    reg [7:0] pc;
     wire clk, sclk;
     assign LED_R = ~counter[25];
     assign LED_G = ~counter[24];
@@ -50,7 +50,7 @@ module top(input P4, output LED_R, output LED_G, output LED_B,
     integer i = 0;
     initial begin
         for (i = 0; i < 16; i = i + 1) begin
-            reg_file[i] = 16'b001;
+            reg_file[i] = 16'hFFFF;
         end
 
         fetch_en <= 1;
@@ -60,21 +60,9 @@ module top(input P4, output LED_R, output LED_G, output LED_B,
     SB_HFOSC SB_HFOSC_inst(
         .CLKHFEN(1),
         .CLKHFPU(1),
-        .CLKHF(sclk)
+        .CLKHF(clk),
     );
-    SB_PLL40_CORE #(
-      .FEEDBACK_PATH("SIMPLE"),
-      .PLLOUT_SELECT("GENCLK"),
-      .DIVR(4'b0000),
-      .DIVF(7'b0001111),
-      .DIVQ(3'b101),
-      .FILTER_RANGE(3'b100),
-    ) SB_PLL40_CORE_inst (
-      .RESETB(1'b1),
-      .BYPASS(1'b0),
-      .PLLOUTCORE(clk),
-      .REFERENCECLK(sclk)
-   );
+    defparam SB_HFOSC_inst.CLKHF_DIV = "0b01";
     
     mem mem(.clk(clk),
             .wr_en(we),
@@ -103,7 +91,7 @@ module top(input P4, output LED_R, output LED_G, output LED_B,
             .q(alu_out));
 
     always @ (posedge clk) begin
-        if (P4) begin
+        if (P4) begin // reset
             counter <= 0;
             pc <= 0;
             fetch_en <= 0;
@@ -119,21 +107,21 @@ module top(input P4, output LED_R, output LED_G, output LED_B,
             we <= 0;
             fetch_en <= 1;
             case (oper)
-            'h1: begin
+            'h1: begin // ADD operB to operA
                 operA <= reg_file[regA];
                 operB <= reg_file[regB];
                 alu_en <= 1;
                 out <= alu_out;
                 reg_file[regA] <= alu_out;
             end
-            'h2: begin
+            'h2: begin // SUB operB from operA
                 operA <= reg_file[regA];
                 operB <= reg_file[regB];
                 alu_en <= 1;
                 out <= alu_out;
                 reg_file[regA] <= alu_out;
             end
-            'h3: begin
+            'h3: begin // AND operA with operB
                 operA <= reg_file[regA];
                 operB <= reg_file[regB];
                 alu_en <= 1;
@@ -141,60 +129,73 @@ module top(input P4, output LED_R, output LED_G, output LED_B,
                 out <= alu_out;
                 
             end
-            'h4: begin
+            'h4: begin // OR operA with operB
                 operA <= reg_file[regA];
                 operB <= reg_file[regB];
                 alu_en <= 1;
                 reg_file[regA] <= alu_out;
                 out <= alu_out;
             end
-            'h5: begin
+            'h5: begin // XOR operA with operB
                 operA <= reg_file[regA];
                 operB <= reg_file[regB];
                 alu_en <= 1;
                 reg_file[regA] <= alu_out;
                 out <= alu_out;
             end
-            'h6 : begin 
+            'h6 : begin // shift right operA by 0-31
                 operA <= reg_file[regA];
                 operB <= regB;
                 alu_en <= 1;
                 reg_file[regA] <= alu_out;
                 out <= alu_out;
             end
-            'h7 : begin 
+            'h7 : begin // shift left operA by 0-31
                 operA <= reg_file[regA];
                 operB <= regB;
                 alu_en <= 1;
                 reg_file[regA] <= alu_out;
                 out <= alu_out;
             end
-            'h8 : begin 
+            'h8 : begin // rotate operA right
                 operA <= reg_file[regA];
                 operB <= regB;
                 alu_en <= 1;
                 reg_file[regA] <= alu_out;
                 out <= alu_out;
             end
-            'h9 : begin 
+            'h9 : begin // rotate operA left
                 operA <= reg_file[regA];
                 operB <= regB;
                 alu_en <= 1;
                 reg_file[regA] <= alu_out;
                 out <= alu_out;
             end
-            'hA : begin 
+            'hA : begin // not operA
                 operA <= reg_file[regA];
                 alu_en <= 1;
                 reg_file[regB] <= alu_out;
                 out <= alu_out;
             end
-            'hB : begin 
+            'hB : begin // multiply operA and operB
                 operA <= reg_file[regA];
                 operB <= regB;
                 alu_en <= 1;
                 reg_file[regA] <= alu_out;
                 out <= alu_out;
+            end
+            'hC : begin // JEQ jump equal
+                if (reg_file[regA] == reg_file[regB]) begin
+                    pc <= intermed[7:0];
+                end
+            end
+            'hD : begin // JNE jump not equal
+                if (reg_file[regA] != reg_file[regB]) begin
+                    pc <= intermed[7:0];
+                end
+            end
+            'hF : begin // JMP jump
+                pc <= intermed[7:0];
             end
             default:
                 out <= 16'h0;

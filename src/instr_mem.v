@@ -1,9 +1,9 @@
-module instr_mem(input wire clk, input fetch_en,input [5:0] pc,inout reg [29:0] instruction);
-    reg [29:0] instruction_mem [0:63];
+module instr_mem(input wire clk, input fetch_en,input [7:0] pc,inout reg [29:0] instruction);
+    reg [29:0] instruction_mem [0:255];
 
     integer i = 0;
     initial begin
-        for (i = 0; i < 64; i = i + 1) begin
+        for (i = 0; i < 256; i = i + 1) begin
             instruction_mem[i] = 30'h1;
         end
     end
