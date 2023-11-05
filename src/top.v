@@ -3,7 +3,8 @@
 `include "instr_decode.v"
 `include "mem.v"
 `include "alu.v"
-
+// Designed to run on the IcyBlue FPGA. please update the parameters
+// to match your targe FPGA.
 module top(input P4, output LED_R, output LED_G, output LED_B,
            output P6,
            P9,
@@ -194,7 +195,7 @@ module top(input P4, output LED_R, output LED_G, output LED_B,
                     pc <= intermed[7:0];
                 end
             end
-            'hF : begin // JMP jump
+            'hE : begin // JMP jump
                 pc <= intermed[7:0];
             end
             default:

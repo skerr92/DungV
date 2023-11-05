@@ -1,7 +1,7 @@
 // Module for the instruction decoder
 `default_nettype none
 module instr_decode(input wire clk,
-                    input [29:0] instruction,
+                    input [31:0] instruction,
                     output [5:0] rega, 
                     output [5:0] regb, 
                     output [15:0]intermed,
@@ -34,7 +34,7 @@ module instr_decode(input wire clk,
                     3: begin
                         rega <= instruction[6:11];
                         regb <= 0;
-                        intermed <= instruction[12:29];
+                        intermed <= instruction[12:27];
                         mem_op <= 0;
                         mem_addr <= 0;
                     end
