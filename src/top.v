@@ -43,11 +43,16 @@ module top(input P4, output LED_R, output LED_G, output LED_B,
     reg alu_en;
     wire [15:0] alu_out;
     reg [15:0] reg_file [0:63];
+    reg [7:0] gpio_bank_0;
+    reg [7:0] gpio_bank_1;
+    reg [7:0] gpio_bank_0_regs [1:0];
+    reg [7:0] gpio_bank_1_regs [1:0];
     wire [15:0] mem_in;
     wire [15:0] mem_out;
     reg [15:0] out;
-    reg [29:0] instruction;
-    assign {P6,P9,P10,P11,P12,P13,P18,P19,P20,P21,P23,P25,P37,P38,P42,P43} = out;
+    reg [31:0] instruction;
+    assign {P6,P9,P10,P11,P12,P13,P18,P19} = gpio_bank_0;
+    assign {P20,P21,P23,P25,P37,P38,P42,P43} = gpio_bank_1;
     integer i = 0;
     initial begin
         for (i = 0; i < 16; i = i + 1) begin
@@ -103,7 +108,32 @@ module top(input P4, output LED_R, output LED_G, output LED_B,
         counter <= counter + 1;
         pc = pc + 1;
         case (flag)
-        
+        'h0: begin 
+            we <= 0;
+            fetch_en <= 1;
+            case (oper[0])
+            0: begin 
+                case (oper[1:2])
+                3: begin
+                    gpio_bank_0_regs[2] <= (reg_file[intermed[0:5]] & intermed[8:15]);
+                end
+                default:
+                    gpio_bank_0_regs[oper[1:2]] <= (intermed[0:7] & intermed[8:15]);
+                endcase
+                gpio_bank_0 <= gpio_bank_0 & gpio_bank_0_regs[0] & gpio_bank_0_regs[1] & gpio_bank_0_regs[2];
+            end
+            1: begin 
+                case (oper[1:2])
+                3: begin
+                    gpio_bank_0_regs[2] <= (reg_file[intermed[0:5]] & intermed[8:15]);
+                end
+                default:
+                    gpio_bank_1_regs[oper[1:2]] <= (intermed[0:7] & intermed[8:15]);
+                endcase
+                gpio_bank_1 <= gpio_bank_1 & gpio_bank_1_regs[0] & gpio_bank_1_regs[1] & gpio_bank_1_regs[2];
+            end
+            endcase
+        end
         'h1: begin
             we <= 0;
             fetch_en <= 1;

@@ -31,6 +31,21 @@ There are three primary instruction flags which are set to determine the remaini
 
 ### Instruction Set List ###
 
+| 00-gpio ops|            |                  |              |               |
+| 2 bits     | 1 bit      | 2 bits           | 8 bits       | 8 bits        |
+| 00-gpio ops| gpio bank  | gpio reg         | gpio reg val | gpio pin mask |
+| 00-gpio ops| 0 - bank 1 | 00 enable reg    | 8b val       | 8b mask       |
+| 00-gpio ops| 0 - bank 1 | 01 direction reg | 8b val       | 8b mask       |
+| 00-gpio ops| 0 - bank 1 | 10 data reg      | 8b val       | 8b mask       |
+| 00-gpio ops| 0 - bank 1 | 11 reg transfer  | 6b val       | 8b mask       |
+| 00-gpio ops| 1 - bank 2 | 00 enable reg    | 8b val       | 8b mask       |
+| 00-gpio ops| 1 - bank 2 | 01 direction reg | 8b val       | 8b mask       |
+| 00-gpio ops| 1 - bank 2 | 10 data reg      | 8b val       | 8b mask       |
+| 00-gpio ops| 1 - bank 2 | 11 reg transfer  | 6b val       | 8b mask       |
+
+For GPIO operations, the
+
+
 | 01-ins ops|---------|---------|---------|---------|---------|---------|
 |-----------|---------|---------|---------|---------|---------|---------|
 | 2 bits    | 4 bits  | 6 bits  |6 bits   | Intermediate support soon   | 

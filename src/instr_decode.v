@@ -12,7 +12,18 @@ module instr_decode(input wire clk,
 
     always @(posedge clk) begin
         flag <= instruction[0:1];
-        case (flag) 
+        case (flag)
+            0: begin 
+                // oper will hold:
+                //     oper[0] - gpio bank
+                //     oper[1:2] - gpio bank reg
+                //     oper[3] - don't care
+                oper <= instruction[2:5];
+                // intermed will hold:
+                //     intermed[0:7] gpio reg value
+                //     intermed[8:15] gpio pin mask
+                intermed <= instruction[6:21];
+            end
             1: begin
                 oper <= instruction[2:5];
                 rega <= instruction[6:11];
