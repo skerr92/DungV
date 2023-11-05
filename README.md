@@ -14,7 +14,6 @@ There are three primary instruction flags which are set to determine the remaini
 
 ### Key Terms ###
 
-|------------|-----------------------------|
 | Instruction| Description                 |
 |------------|-----------------------------|
 | SHR        | Shift Right by 6b value     |
@@ -32,7 +31,6 @@ There are three primary instruction flags which are set to determine the remaini
 
 ### Instruction Set List ###
 
-|-----------|---------|---------|---------|---------|---------|---------|
 | 01-ins ops|---------|---------|---------|---------|---------|---------|
 |-----------|---------|---------|---------|---------|---------|---------|
 | 2 bits    | 4 bits  | 6 bits  |6 bits   | Intermediate support soon   | 
@@ -56,7 +54,6 @@ There are three primary instruction flags which are set to determine the remaini
 | 01-ins ops|1111 NOP | 6'hXX   | 6'hXX   |16h'XXXX | 13'bXX  |   0/1   |
 
 
-|-----------|---------|---------|---------|---------|---------|
 | 10-reg ops|---------|---------|---------|---------|---------|
 |-----------|---------|---------|---------|---------|---------|
 | 2 bits    | 2 bits  | 6 bits  | 6 bits  | 16 bits |         |
@@ -69,6 +66,8 @@ There are three primary instruction flags which are set to determine the remaini
 
 
 | 11-mem ops|---------|---------|---------|---------|
+|-----------|---------|---------|---------|---------|
+| 2 bits    | 2 bits  | 6-9 bits| 9 bits  | 16 bits |
 |-----------|---------|---------|---------|---------|
 | flag      | oper    | reg A   | memaddr | intermed|
 |-----------|---------|---------|---------|---------|
