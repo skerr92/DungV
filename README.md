@@ -46,7 +46,8 @@ There are three primary instruction flags which are set to determine the remaini
 | 00-gpio ops| 1 - bank 2 | 11 reg transfer  | 6b val       | 8b mask       |
 
 For GPIO operations, the user can configure the GPIO directly with instructions
-from the program, as well as write a specific bit or
+from the program, as well as write a specific bit or pull one from a register
+file address.
 
 
 | 01-ins ops|---------|---------|---------|---------|---------|---------|
