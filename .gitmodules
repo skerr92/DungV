@@ -1,0 +1,3 @@
+[submodule "OASIS"]
+	path = OASIS
+	url = git@github.com:skerr92/OASIS.git

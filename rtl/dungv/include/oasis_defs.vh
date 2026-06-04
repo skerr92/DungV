@@ -1,0 +1,42 @@
+`ifndef OASIS_DEFS_VH
+`define OASIS_DEFS_VH
+
+`define OASIS_XLEN 16
+`define OASIS_INSTR_WIDTH 32
+`define OASIS_REG_COUNT 64
+`define OASIS_REG_ADDR_WIDTH 6
+`define OASIS_PC_WIDTH 8
+`define OASIS_IMM_WIDTH 16
+`define OASIS_DATA_ADDR_WIDTH 9
+`define OASIS_INSTR_COUNT 256
+`define OASIS_DATA_WORDS 512
+
+`define OASIS_CLASS_RESERVED 2'b00
+`define OASIS_CLASS_ALU      2'b01
+`define OASIS_CLASS_REG      2'b10
+`define OASIS_CLASS_MEM      2'b11
+
+`define OASIS_ALU_ADD 4'b0001
+`define OASIS_ALU_SUB 4'b0010
+`define OASIS_ALU_AND 4'b0011
+`define OASIS_ALU_OOR 4'b0100
+`define OASIS_ALU_XOR 4'b0101
+`define OASIS_ALU_SHR 4'b0110
+`define OASIS_ALU_SHL 4'b0111
+`define OASIS_ALU_RTR 4'b1000
+`define OASIS_ALU_RTL 4'b1001
+`define OASIS_ALU_NOT 4'b1010
+`define OASIS_ALU_MLT 4'b1011
+`define OASIS_ALU_JEQ 4'b1100
+`define OASIS_ALU_JNE 4'b1101
+`define OASIS_ALU_JMP 4'b1110
+`define OASIS_ALU_NOP 4'b1111
+
+`define OASIS_REG_MVV 2'b10
+`define OASIS_REG_MVI 2'b11
+
+`define OASIS_MEM_MVF 2'b01
+`define OASIS_MEM_MVT 2'b10
+`define OASIS_MEM_MSI 2'b11
+
+`endif
