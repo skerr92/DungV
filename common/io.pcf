@@ -1,36 +1,22 @@
-# For the iCE5LP4K based IcyBlue (iCE5LP4K-QFN) Development Board
+# RPGA Feather iCE5LP4K pin constraints.
+# Source pin map mirrored from the sister ice40_spi_io_expander/common/io.pcf.
 
-set_io LED_R 41
-set_io LED_G 40
-set_io LED_B 39
-set_io LED2 2
-set_io LED3 3
+# Sideband pins
+# clk/data_out form a DungV serial debug stream from FPGA to RP2040.
+# enable remains an RP2040-controlled DungV reset/programming gate.
+set_io clk 2
+set_io enable 3
+set_io data 4
+set_io data_out 6
 
-#GPIO
-set_io P4 4
-set_io P6 6
-set_io P9 9
-set_io P10 10
-set_io P11 11
-set_io P12 12
-set_io P13 13
-set_io P18 18
-set_io P19 19
-set_io P20 20
-set_io P21 21
-set_io P23 23
-set_io P25 25
-set_io P37 37
-set_io P38 38
-set_io P42 42
-set_io P43 43
-set_io P44 44
-set_io P45 45
-set_io P46 46
-set_io P47 47
-set_io P48 48
+# DungV status outputs. Remap these to whichever RPGA Feather pins you expose.
+set_io STATUS_ALU 13
+set_io STATUS_OP 20
+set_io STATUS_MEM 39
+set_io STATUS_RUN 40
+set_io HEARTBEAT 41
 
-#spi
+# SPI from RP2040 to FPGA
 set_io SPI_SS 16
 set_io SPI_SCK 15
 set_io SPI_MOSI 17

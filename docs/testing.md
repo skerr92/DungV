@@ -26,9 +26,15 @@ make test
 
 ## 2. ISA Compliance Tests
 
-Once the sister OASIS ISA repository exists, DungV should consume its compliance
-programs as a pinned dependency. Until then, `tests/compliance/` records the
-coverage plan for the local OASIS v0.1 draft.
+DungV consumes OASIS compliance programs from the pinned `OASIS/` submodule.
+Generate Base-16 v0.1 assembly and instruction-memory images with:
+
+```sh
+make compliance
+```
+
+The generated files live under `.build/compliance/base16-v0.1/`. Base-16T
+programs are excluded until DungV implements class `00` toolchain instructions.
 
 ## 3. Golden Model Tests
 

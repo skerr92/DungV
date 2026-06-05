@@ -1,61 +1,102 @@
 `default_nettype none
 `include "oasis_defs.vh"
 
-// Board wrapper for the IcyBlue FPGA.
+// Board wrapper for the RPGA Feather iCE5LP4K.
 module top(
-    input wire P4,
-    output wire LED_R,
-    output wire LED_G,
-    output wire LED_B,
-    output wire P6,
-    output wire P9,
-    output wire P10,
-    output wire P11,
-    output wire P12,
-    output wire P13,
-    output wire P18,
-    output wire P19,
-    output wire P20,
-    output wire P21,
-    output wire P23,
-    output wire P25,
-    output wire P37,
-    output wire P38,
-    output wire P42,
-    output wire P43
+    output wire clk,
+    input wire enable,
+    input wire data,
+    output wire data_out,
+    input wire SPI_SS,
+    input wire SPI_SCK,
+    input wire SPI_MOSI,
+    output wire SPI_MISO,
+    output wire STATUS_ALU,
+    output wire STATUS_OP,
+    output wire STATUS_MEM,
+    output wire STATUS_RUN,
+    output wire HEARTBEAT
 );
 
-    wire clk;
+    wire core_clk;
     wire [`OASIS_PC_WIDTH-1:0] pc;
     wire [`OASIS_XLEN-1:0] out;
+    wire core_halt;
+    wire core_reset;
+    wire status_alu;
+    wire status_op;
+    wire status_mem;
+    wire status_run;
+    wire imem_prog_we;
+    wire [`OASIS_PC_WIDTH-1:0] imem_prog_addr;
+    wire [`OASIS_INSTR_WIDTH-1:0] imem_prog_wdata;
+    wire [`OASIS_INSTR_WIDTH-1:0] imem_prog_rdata;
+    wire debug_clk;
+    wire debug_data;
     reg [31:0] counter;
 
-    assign LED_R = ~counter[25];
-    assign LED_G = ~counter[24];
-    assign LED_B = ~counter[23];
-    assign {P6, P9, P10, P11, P12, P13, P18, P19,
-            P20, P21, P23, P25, P37, P38, P42, P43} = out;
+    assign STATUS_ALU = status_alu;
+    assign STATUS_OP = status_op;
+    assign STATUS_MEM = status_mem;
+    assign STATUS_RUN = status_run;
+    assign HEARTBEAT = counter[23];
+    assign clk = debug_clk;
+    assign data_out = debug_data;
 
     SB_HFOSC SB_HFOSC_inst(
         .CLKHFEN(1'b1),
         .CLKHFPU(1'b1),
-        .CLKHF(clk)
+        .CLKHF(core_clk)
     );
     defparam SB_HFOSC_inst.CLKHF_DIV = "0b01";
 
+    hard_spi_programmer hard_spi_programmer_inst(
+        .clk(core_clk),
+        .reset(!enable),
+        .spi_ss(SPI_SS),
+        .spi_sck(SPI_SCK),
+        .spi_mosi(SPI_MOSI),
+        .spi_miso(SPI_MISO),
+        .core_pc(pc),
+        .core_halt(core_halt),
+        .core_reset(core_reset),
+        .imem_prog_we(imem_prog_we),
+        .imem_prog_addr(imem_prog_addr),
+        .imem_prog_wdata(imem_prog_wdata),
+        .imem_prog_rdata(imem_prog_rdata)
+    );
+
     oasis_core #(.PROGRAM_FILE("")) oasis_core_inst(
-        .clk(clk),
-        .reset(P4),
+        .clk(core_clk),
+        .reset(core_reset),
+        .halt(core_halt),
+        .imem_prog_we(imem_prog_we),
+        .imem_prog_addr(imem_prog_addr),
+        .imem_prog_wdata(imem_prog_wdata),
+        .imem_prog_rdata(imem_prog_rdata),
         .pc_value(pc),
-        .debug_out(out)
+        .debug_out(out),
+        .status_alu(status_alu),
+        .status_op(status_op),
+        .status_mem(status_mem),
+        .status_run(status_run)
+    );
+
+    serial_debug_out serial_debug_out_inst(
+        .clk(core_clk),
+        .reset(core_reset),
+        .pc(pc),
+        .out_value(out),
+        .debug_clk(debug_clk),
+        .debug_data(debug_data)
     );
 
     initial begin
         counter = 32'h00000000;
     end
 
-    always @(posedge clk) begin
-        if (P4) begin
+    always @(posedge core_clk) begin
+        if (core_reset) begin
             counter <= 32'h00000000;
         end else begin
             counter <= counter + 1'b1;

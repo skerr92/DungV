@@ -2,7 +2,12 @@
 `include "oasis_defs.vh"
 
 module instr_mem(
+    input wire clk,
     input wire [`OASIS_PC_WIDTH-1:0] pc,
+    input wire prog_we,
+    input wire [`OASIS_PC_WIDTH-1:0] prog_addr,
+    input wire [`OASIS_INSTR_WIDTH-1:0] prog_wdata,
+    output wire [`OASIS_INSTR_WIDTH-1:0] prog_rdata,
     output wire [`OASIS_INSTR_WIDTH-1:0] instruction
 );
 
@@ -22,5 +27,12 @@ module instr_mem(
     end
 
     assign instruction = instruction_mem[pc];
+    assign prog_rdata = instruction_mem[prog_addr];
+
+    always @(posedge clk) begin
+        if (prog_we) begin
+            instruction_mem[prog_addr] <= prog_wdata;
+        end
+    end
 
 endmodule

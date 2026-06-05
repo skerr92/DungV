@@ -1,0 +1,14 @@
+; Base-16 example that counts to three using JEQ and JMP.
+start:
+MVI r1, 0
+MVI r2, 1
+MVI r3, 3
+
+loop:
+ADD r1, r2
+JEQ r1, r3, done
+JMP loop
+
+done:
+MVT r1, [0x002]
+NOP

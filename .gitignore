@@ -1,5 +1,7 @@
+.DS_Store
 rtl/dungv/*.asc
 rtl/dungv/*.bin
 rtl/dungv/*.blif
 rtl/dungv/*.json
 rtl/dungv/sim/build/
+.build/

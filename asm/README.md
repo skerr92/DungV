@@ -1,7 +1,12 @@
 # OASIS Assembly
 
-This directory is reserved for future assembler tooling. The syntax described
-here matches OASIS v0.1.
+DungV uses the assembler from the pinned OASIS submodule:
+
+```sh
+python3 ../OASIS/tools/oasis_asm.py ../examples/add_store.oas -o ../.build/examples/add_store.mem
+```
+
+The syntax described here matches OASIS Base-16 v0.1.
 
 ## Syntax
 
@@ -25,7 +30,7 @@ MVT r1, [0x001]
 JMP start
 ```
 
-## Future Tooling
+## Generated Images
 
-The next useful tool here is a small assembler that emits 32-bit binary words
-for `instr_mem`.
+Run `make examples` from the repo root to assemble every `examples/*.oas` source
+into a `$readmemb`-friendly `.mem` file under `.build/examples/`.

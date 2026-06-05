@@ -14,7 +14,7 @@ module alu_tb;
         .result(result)
     );
 
-    task expect;
+    task check_result;
         input [`OASIS_XLEN-1:0] expected;
         input [127:0] name;
         begin
@@ -30,32 +30,32 @@ module alu_tb;
         operand_a = 16'h000a;
         operand_b = 16'h0014;
         oper = `OASIS_ALU_ADD;
-        expect(16'h001e, "add");
+        check_result(16'h001e, "add");
 
         operand_a = 16'h000a;
         operand_b = 16'h0014;
         oper = `OASIS_ALU_SUB;
-        expect(16'hfff6, "sub_wrap");
+        check_result(16'hfff6, "sub_wrap");
 
         operand_a = 16'h8001;
         operand_b = 16'h0000;
         oper = `OASIS_ALU_RTR;
-        expect(16'h8001, "rtr_zero");
+        check_result(16'h8001, "rtr_zero");
 
         operand_a = 16'h0001;
         operand_b = 16'h0001;
         oper = `OASIS_ALU_RTR;
-        expect(16'h8000, "rtr_one");
+        check_result(16'h8000, "rtr_one");
 
         operand_a = 16'h8000;
         operand_b = 16'h0001;
         oper = `OASIS_ALU_RTL;
-        expect(16'h0001, "rtl_one");
+        check_result(16'h0001, "rtl_one");
 
         operand_a = 16'h00ff;
         operand_b = 16'h0000;
         oper = `OASIS_ALU_NOT;
-        expect(16'hff00, "not");
+        check_result(16'hff00, "not");
 
         $display("PASS alu_tb");
     end

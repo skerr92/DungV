@@ -7,10 +7,12 @@ sources = board/top.v \
 	execute/alu.v \
 	memory/instr_mem.v \
 	memory/data_mem.v \
+	programming/hard_spi_programmer.v \
+	programming/serial_debug_out.v \
 	registers/register_file.v
 
 build:
-	yosys -Iinclude -p "synth_ice40 -abc2 -dsp -top top -json $(filename).json" $(sources)
+	yosys -p "read_verilog -Iinclude $(sources); synth_ice40 -abc2 -dsp -top top -json $(filename).json"
 	nextpnr-ice40 --u4k --package sg48 --json $(filename).json --pcf $(pcf_file) --asc $(filename).asc
 	icepack $(filename).asc $(filename).bin
 

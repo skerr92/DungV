@@ -6,7 +6,7 @@ module data_mem(
     input wire wr_en,
     input wire [`OASIS_DATA_ADDR_WIDTH-1:0] addr,
     input wire [`OASIS_XLEN-1:0] data_in,
-    output wire [`OASIS_XLEN-1:0] data_out
+    output reg [`OASIS_XLEN-1:0] data_out
 );
 
     reg [`OASIS_XLEN-1:0] memory [0:`OASIS_DATA_WORDS-1];
@@ -18,9 +18,9 @@ module data_mem(
         end
     end
 
-    assign data_out = memory[addr];
-
     always @(posedge clk) begin
+        data_out <= memory[addr];
+
         if (wr_en) begin
             memory[addr] <= data_in;
         end

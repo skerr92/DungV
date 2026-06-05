@@ -1,0 +1,243 @@
+; Broad Base-16 v0.1 exercise program for DungV.
+; It touches ALU operations, memory operations, branch behavior, and loops.
+start:
+MVI r1, 0x0001
+MVI r2, 0x0002
+ADD r1, r2
+MVT r1, [0x001]
+SUB r1, r2
+MVT r1, [0x002]
+MVI r3, 0x00ff
+MVI r4, 0x0f0f
+AND r3, r4
+MVT r3, [0x003]
+MVI r5, 0x00f0
+OOR r5, r4
+MVT r5, [0x004]
+MVI r6, 0x0ff0
+XOR r6, r4
+MVT r6, [0x005]
+NOT r6
+MVT r6, [0x006]
+MVI r7, 0x8001
+SHR r7, 1
+MVT r7, [0x007]
+MVI r8, 0x0001
+SHL r8, 4
+MVT r8, [0x008]
+MVI r9, 0x0001
+RTR r9, 1
+MVT r9, [0x009]
+MVI r10, 0x8000
+RTL r10, 1
+MVT r10, [0x00a]
+MVI r11, 7
+MVI r12, 6
+MLT r11, r12
+MVT r11, [0x00b]
+MSI [0x010], 0x1234
+MVF r13, [0x010]
+MVT r13, [0x011]
+MVI r14, 0
+MVI r15, 1
+MVI r16, 8
+
+sum_loop:
+ADD r14, r15
+ADD r15, r1
+JNE r15, r16, sum_loop
+MVT r14, [0x012]
+JEQ r14, r14, branch_taken
+MSI [0x013], 0xffff
+
+branch_taken:
+MSI [0x013], 0x0001
+MVI r17, 0x0003
+MVI r18, 0x0000
+
+countdown:
+ADD r18, r1
+SUB r17, r1
+JNE r17, r0, countdown
+MVT r18, [0x014]
+MVI r19, 0xaaaa
+MVI r20, 0x5555
+XOR r19, r20
+MVT r19, [0x015]
+OOR r19, r20
+MVT r19, [0x016]
+AND r19, r20
+MVT r19, [0x017]
+NOT r19
+MVT r19, [0x018]
+MVI r21, 0x00f0
+SHR r21, 4
+MVT r21, [0x019]
+SHL r21, 8
+MVT r21, [0x01a]
+RTR r21, 4
+MVT r21, [0x01b]
+RTL r21, 4
+MVT r21, [0x01c]
+MVI r22, 0x0100
+MVI r23, 0x0100
+MLT r22, r23
+MVT r22, [0x01d]
+MVF r24, [0x001]
+MVF r25, [0x00b]
+ADD r24, r25
+MVT r24, [0x01e]
+MVV r26, r24
+SUB r26, r11
+MVT r26, [0x01f]
+MVI r27, 5
+MVI r28, 0
+
+inner_loop:
+ADD r28, r27
+SUB r27, r1
+JNE r27, r0, inner_loop
+MVT r28, [0x020]
+MVI r29, 0x0001
+JEQ r29, r1, equal_path
+MSI [0x021], 0xeeee
+
+equal_path:
+MSI [0x021], 0x1111
+JMP linear_tail
+MSI [0x022], 0xdead
+
+linear_tail:
+MSI [0x030], 0x0000
+MSI [0x031], 0x0001
+MSI [0x032], 0x0002
+MSI [0x033], 0x0003
+MSI [0x034], 0x0004
+MSI [0x035], 0x0005
+MSI [0x036], 0x0006
+MSI [0x037], 0x0007
+MSI [0x038], 0x0008
+MSI [0x039], 0x0009
+MVF r30, [0x030]
+MVF r31, [0x031]
+ADD r30, r31
+MVF r31, [0x032]
+ADD r30, r31
+MVF r31, [0x033]
+ADD r30, r31
+MVF r31, [0x034]
+ADD r30, r31
+MVF r31, [0x035]
+ADD r30, r31
+MVF r31, [0x036]
+ADD r30, r31
+MVF r31, [0x037]
+ADD r30, r31
+MVF r31, [0x038]
+ADD r30, r31
+MVF r31, [0x039]
+ADD r30, r31
+MVT r30, [0x03a]
+MVI r32, 0x000f
+MVI r33, 0x00f0
+OOR r32, r33
+MVI r34, 0x0f00
+OOR r32, r34
+MVI r35, 0xf000
+OOR r32, r35
+MVT r32, [0x03b]
+MVI r36, 0xffff
+XOR r36, r32
+MVT r36, [0x03c]
+MVI r37, 0x0001
+MVI r38, 0x0010
+
+shift_loop:
+SHL r37, 1
+SUB r38, r1
+JNE r38, r0, shift_loop
+MVT r37, [0x03d]
+MVI r39, 0x8000
+MVI r40, 0x0004
+
+rotate_loop:
+RTR r39, 1
+SUB r40, r1
+JNE r40, r0, rotate_loop
+MVT r39, [0x03e]
+MVI r41, 0x0001
+MVI r42, 0x0004
+
+rotate_left_loop:
+RTL r41, 1
+SUB r42, r1
+JNE r42, r0, rotate_left_loop
+MVT r41, [0x03f]
+MVI r43, 3
+MVI r44, 3
+MLT r43, r44
+MLT r43, r44
+MVT r43, [0x040]
+MVI r45, 0x0000
+JEQ r45, r0, final_checks
+MSI [0x041], 0xbeef
+
+final_checks:
+MSI [0x041], 0x600d
+MVF r46, [0x041]
+MVF r47, [0x03a]
+ADD r46, r47
+MVT r46, [0x042]
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+
+done:
+JMP done

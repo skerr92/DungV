@@ -1,0 +1,10 @@
+; Base-16 example that adds two values and stores the result in data memory.
+start:
+MVI r1, 10
+MVI r2, 20
+ADD r1, r2
+MVT r1, [0x001]
+JMP done
+
+done:
+NOP
