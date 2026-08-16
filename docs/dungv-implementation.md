@@ -1,6 +1,6 @@
 # DungV Implementation Notes
 
-DungV is a minimal Verilog implementation of OASIS Base-16 v0.1. The active ISA
+DungV is a minimal Verilog implementation migrating to OASIS Base-16 v1.0. The active ISA
 tooling and compliance inputs come from the pinned `OASIS/` submodule, while
 the local spec snapshot remains useful historical context.
 
@@ -13,7 +13,11 @@ the local spec snapshot remains useful historical context.
 | `rtl/dungv/decode/instr_decode.v` | Combinational instruction decoder |
 | `rtl/dungv/execute/alu.v` | Combinational 16-bit ALU |
 | `rtl/dungv/memory/instr_mem.v` | 256-entry instruction memory |
-| `rtl/dungv/memory/data_mem.v` | 512-entry data memory |
+| `rtl/dungv/memory/data_mem.v` | 2048-entry v1.0 ordinary data memory |
+| `rtl/dungv/peripherals/gpio_mmio.v` | First request/response MMIO target |
+| `rtl/dungv/peripherals/pwm_mmio.v` | Three-channel 8-bit PWM with atomic commit |
+| `rtl/dungv/peripherals/uart_mmio.v` | Blocking 8-N-1 UART MMIO target |
+| `rtl/dungv/peripherals/i2c_master_mmio.v` | Blocking open-drain I2C byte engine |
 | `rtl/dungv/programming/hard_spi_programmer.v` | OASIS programming access port over iCE40 hard SPI |
 | `rtl/dungv/programming/spi_programmer.v` | Soft-SPI programming reference implementation |
 | `rtl/dungv/programming/serial_debug_out.v` | Sideband serial debug stream |
@@ -57,3 +61,21 @@ activity on output pins.
 
 See [oasis-compatibility.md](oasis-compatibility.md) for DungV's current
 instruction implementation status against the pinned OASIS baseline.
+
+See [peripheral-bus.md](peripheral-bus.md) for the v1.0 MMIO transaction
+contract and peripheral register map.
+
+## Hardware Verification
+
+The RPGA iCE5LP4K build verifies the MMIO path beyond isolated RTL tests:
+
+- GPIO writes produced the expected routed pin states.
+- Atomic RGB PWM updates produced a software-calculated rainbow fade.
+- Blocking UART accesses passed repeated 115200-baud echo exchanges.
+- The open-drain I2C controller addressed a BMA530 at `0x18` and read its
+  documented `0xC2` CHIP_ID.
+
+The UART and I2C tests exercise MMIO backpressure while the peripheral finishes
+a byte operation, directly validating that the core holds and retires v1.0 MMIO
+instructions correctly. Precise bus-error traps remain an optional OASIS-16P
+milestone and are not implied by these Base-16 results.

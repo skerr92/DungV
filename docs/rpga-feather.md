@@ -9,19 +9,19 @@ The RPGA wrapper in `rtl/dungv/board/top.v` exposes:
 
 | Signal | Direction | Meaning |
 | ------ | --------- | ------- |
-| `clk` | output | DungV serial debug clock |
-| `enable` | input | Active-high DungV enable; low holds the core/programmer in reset |
+| `clk` | output | DungV serial debug clock on FPGA F2 |
+| `enable` | input | RP2040-controlled reset/programming gate on FPGA F3 |
 | `data` | input | Reserved RPGA sideband control input |
-| `data_out` | output | DungV serial debug data |
+| `data_out` | output | DungV serial debug data on FPGA F6 |
+| `I2C_SCL` | open drain | FPGA F13 drives/samples sensor SCL |
+| `I2C_SDA` | open drain | FPGA F20 drives/samples sensor SDA |
 | `SPI_SS` | input | OASIS programming SPI chip select |
 | `SPI_SCK` | input | OASIS programming SPI clock |
 | `SPI_MOSI` | input | OASIS programming SPI data from RP2040 to FPGA |
 | `SPI_MISO` | output | OASIS programming SPI data from FPGA to RP2040 |
-| `STATUS_ALU` | output | High while an ALU instruction is in the execute phase |
-| `STATUS_OP` | output | High while a non-ALU, non-memory instruction is in execute |
-| `STATUS_MEM` | output | High while a memory instruction is in execute |
-| `STATUS_RUN` | output | High when the core is out of reset and not halted |
-| `HEARTBEAT` | output | Free-running FPGA heartbeat |
+| `RGB0` | output | Dedicated FPGA RGB-driver channel on F39; MMIO bit 2 |
+| `RGB1` | output | Dedicated FPGA RGB-driver channel on F40; MMIO bit 3 |
+| `RGB2` | output | Dedicated FPGA RGB-driver channel on F41; MMIO bit 4 |
 
 The current `common/io.pcf` maps those logical names to available RPGA pins.
 Adjust that file to match the exact pins you have wired to the RP2040 or to
@@ -44,7 +44,8 @@ Generate the OASIS program image:
 make examples
 ```
 
-This produces `.build/examples/v0_1_full_sweep.spi16`.
+This produces `.build/examples/i2c_bma530_id.spi16` along with the other
+example images.
 
 ## CIRCUITPY Files
 
@@ -54,38 +55,42 @@ Copy these files to the RPGA Feather CIRCUITPY drive:
 | ------ | --------------------- |
 | `circuitpython/code.py` | `/code.py` |
 | `rtl/dungv/top.bin` | `/top.bin` |
-| `.build/examples/v0_1_full_sweep.spi16` | `/v0_1_full_sweep.spi16` |
+| `.build/examples/i2c_bma530_id.spi16` | `/i2c_bma530_id.spi16` |
 
-`code.py` first attempts to configure the FPGA through an installed
-`icepython` module. It then streams the `.spi16` OASIS programming frames over
-SPI and reads the serial debug stream from `clk`/`data_out`.
+`code.py` configures the FPGA, streams the BMA530 identification program over
+SPI, and observes the result through the F2/F6 debug link. `0x00c2` is reported
+as PASS and `0xdead` as FAIL. The program polls continuously so SCL/SDA traffic
+remains visible after startup.
 
-## Serial Debug Stream
+## I2C Wiring
 
-DungV drives a simple synchronous serial stream on the sideband pins:
+F2/F3/F6 retain the synchronous debug and external reset interface. FPGA F13 is
+I2C SCL and F20 is I2C SDA. Both signals are open drain and require pull-ups.
 
-| Signal | RPGA pin in `common/io.pcf` | CircuitPython pin |
-| ------ | --------------------------- | ----------------- |
-| `clk` | FPGA pin 2 | `board.F2` |
-| `data_out` | FPGA pin 6 | `board.F6` |
+The first peripheral register map is:
 
-Data changes while `clk` is low and is sampled by `code.py` on rising edges.
-Each four-byte group is:
+| MMIO word | Name | Access | Meaning |
+| --------- | ---- | ------ | ------- |
+| `io:[0x000]` | `GPIO_OUT` | Read/write | Low two bits drive D3 and D8 |
+| `io:[0x001]` | `GPIO_IN` | Read-only | Bit 0 samples the `data`/`F4` sideband input |
+| `io:[0x010]` | `PWM_CONTROL` | Read/write | Bit 0 enables RGB PWM |
+| `io:[0x011]` | `PWM_RED` | Read/write | Red shadow duty |
+| `io:[0x012]` | `PWM_GREEN` | Read/write | Green shadow duty |
+| `io:[0x013]` | `PWM_BLUE` | Read/write | Blue shadow duty |
+| `io:[0x014]` | `PWM_COMMIT` | Write-only | Applies all three duties atomically |
+| `io:[0x020]` | `UART_DATA` | Read/write | Blocking receive/transmit byte |
+| `io:[0x021]` | `UART_STATUS` | Read/W1C | RX/TX readiness and sticky errors |
+| `io:[0x022]` | `UART_DIVISOR` | Read/write | Core clocks per serial bit; reset 104 |
+| `io:[0x030]` | `I2C_COMMAND` | Read/write | START/STOP/WRITE/READ byte command |
+| `io:[0x031]` | `I2C_TXDATA` | Read/write | Next transmitted byte |
+| `io:[0x032]` | `I2C_RXDATA` | Read-only | Most recently received byte |
+| `io:[0x033]` | `I2C_STATUS` | Read/W1C | Busy, NACK, and sampled line state |
+| `io:[0x034]` | `I2C_DIVISOR` | Read/write | Reset 80 for approximately 50 kHz |
 
-| Byte | Meaning |
-| ---- | ------- |
-| `0` | Sync byte, currently `0xa5` |
-| `1` | Program counter low byte |
-| `2` | `debug_out[15:8]` |
-| `3` | `debug_out[7:0]` |
-
-The CircuitPython reader prints one four-byte group per line and then clears
-the local buffer for the next group.
-
-`STATUS_ALU`, `STATUS_OP`, and `STATUS_MEM` are execute-phase pulses at the
-FPGA clock rate. They are useful on a logic analyzer or with LED/pulse-stretch
-hardware. CircuitPython polling should reliably show `STATUS_RUN`, but may miss
-individual instruction-class pulses.
+Writes to `GPIO_IN` and accesses to unmapped addresses complete with a bus
+error. Base-16 currently treats that error as a failed operation with no trap;
+the optional OASIS-16P integration will translate it into the specified precise
+access fault.
 
 If your CircuitPython board exposes different pin names, edit the pin selection
 near the top of `circuitpython/code.py` and keep `common/io.pcf` aligned with

@@ -1,0 +1,49 @@
+; CPU-driven RGB rainbow chase using the three-channel PWM peripheral.
+; PWM MMIO: control=0x010, red=0x011, green=0x012, blue=0x013,
+; commit=0x014. Duty updates are committed atomically before each delay.
+start:
+MVI r1, 1
+MVI r2, 0x00ff
+MVI r3, 0x0000
+MVI r4, 0x0000
+MSI io:[0x010], 0x0001
+
+red_to_green:
+MVT r2, io:[0x011]
+MVT r3, io:[0x012]
+MVT r4, io:[0x013]
+MSI io:[0x014], 0x0001
+MVI r5, 0xffff
+red_to_green_delay:
+SUB r5, r1
+JNE r5, r0, red_to_green_delay
+SUB r2, r1
+ADD r3, r1
+JNE r2, r0, red_to_green
+
+green_to_blue:
+MVT r2, io:[0x011]
+MVT r3, io:[0x012]
+MVT r4, io:[0x013]
+MSI io:[0x014], 0x0001
+MVI r5, 0xffff
+green_to_blue_delay:
+SUB r5, r1
+JNE r5, r0, green_to_blue_delay
+SUB r3, r1
+ADD r4, r1
+JNE r3, r0, green_to_blue
+
+blue_to_red:
+MVT r2, io:[0x011]
+MVT r3, io:[0x012]
+MVT r4, io:[0x013]
+MSI io:[0x014], 0x0001
+MVI r5, 0xffff
+blue_to_red_delay:
+SUB r5, r1
+JNE r5, r0, blue_to_red_delay
+SUB r4, r1
+ADD r2, r1
+JNE r4, r0, blue_to_red
+JMP red_to_green

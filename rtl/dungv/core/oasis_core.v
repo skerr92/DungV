@@ -11,6 +11,13 @@ module oasis_core(
     output wire [`OASIS_INSTR_WIDTH-1:0] imem_prog_rdata,
     output wire [`OASIS_PC_WIDTH-1:0] pc_value,
     output wire [`OASIS_XLEN-1:0] debug_out,
+    output wire mmio_valid,
+    output wire mmio_write,
+    output wire [`OASIS_DATA_ADDR_WIDTH-1:0] mmio_addr,
+    output wire [`OASIS_XLEN-1:0] mmio_wdata,
+    input wire [`OASIS_XLEN-1:0] mmio_rdata,
+    input wire mmio_ready,
+    input wire mmio_error,
     output wire status_alu,
     output wire status_op,
     output wire status_mem,
@@ -28,6 +35,7 @@ module oasis_core(
     reg [1:0] exec_class;
     reg [3:0] exec_oper;
     reg [1:0] exec_mem_op;
+    reg exec_mem_mmio;
     reg [`OASIS_DATA_ADDR_WIDTH-1:0] exec_mem_addr;
 
     wire [`OASIS_INSTR_WIDTH-1:0] instruction;
@@ -37,6 +45,7 @@ module oasis_core(
     wire [1:0] instr_class;
     wire [3:0] oper;
     wire [1:0] mem_op;
+    wire mem_mmio;
     wire [`OASIS_DATA_ADDR_WIDTH-1:0] mem_addr;
     wire [`OASIS_XLEN-1:0] alu_out;
     wire [`OASIS_XLEN-1:0] mem_in;
@@ -57,6 +66,12 @@ module oasis_core(
     assign status_mem = exec_valid && exec_class == `OASIS_CLASS_MEM;
     assign status_op = exec_valid && !status_alu && !status_mem;
     assign mem_in = exec_mem_op == `OASIS_MEM_MSI ? exec_intermed : reg_data_a;
+    assign mmio_valid = !reset && !halt && exec_valid &&
+                        exec_class == `OASIS_CLASS_MEM && exec_mem_mmio;
+    assign mmio_write = exec_mem_op == `OASIS_MEM_MVT ||
+                        exec_mem_op == `OASIS_MEM_MSI;
+    assign mmio_addr = exec_mem_addr;
+    assign mmio_wdata = mem_in;
     assign operand_b = (exec_oper >= `OASIS_ALU_SHR && exec_oper <= `OASIS_ALU_RTL) ?
                        {{(`OASIS_XLEN-`OASIS_REG_ADDR_WIDTH){1'b0}}, exec_regb} :
                        reg_data_b;
@@ -80,6 +95,7 @@ module oasis_core(
         .instr_class(instr_class),
         .oper(oper),
         .mem_op(mem_op),
+        .mem_mmio(mem_mmio),
         .mem_addr(mem_addr)
     );
 
@@ -98,6 +114,7 @@ module oasis_core(
     data_mem data_mem_inst(
         .clk(clk),
         .wr_en(!reset && !halt && exec_valid && exec_class == `OASIS_CLASS_MEM &&
+               !exec_mem_mmio &&
                (exec_mem_op == `OASIS_MEM_MVT || exec_mem_op == `OASIS_MEM_MSI)),
         .addr(data_mem_addr),
         .data_in(mem_in),
@@ -146,8 +163,13 @@ module oasis_core(
 
                 `OASIS_CLASS_MEM: begin
                     if (exec_mem_op == `OASIS_MEM_MVF) begin
-                        reg_wr_en = 1'b1;
-                        reg_wr_data = mem_out;
+                        if (!exec_mem_mmio) begin
+                            reg_wr_en = 1'b1;
+                            reg_wr_data = mem_out;
+                        end else if (mmio_ready && !mmio_error) begin
+                            reg_wr_en = 1'b1;
+                            reg_wr_data = mmio_rdata;
+                        end
                     end
                 end
             endcase
@@ -165,6 +187,7 @@ module oasis_core(
             exec_class <= `OASIS_CLASS_RESERVED;
             exec_oper <= 4'h0;
             exec_mem_op <= 2'b00;
+            exec_mem_mmio <= 1'b0;
             exec_mem_addr <= {`OASIS_DATA_ADDR_WIDTH{1'b0}};
         end else if (!halt) begin
             if (!exec_valid) begin
@@ -175,8 +198,10 @@ module oasis_core(
                 exec_class <= instr_class;
                 exec_oper <= oper;
                 exec_mem_op <= mem_op;
+                exec_mem_mmio <= mem_mmio;
                 exec_mem_addr <= mem_addr;
-            end else begin
+            end else if (!(exec_class == `OASIS_CLASS_MEM && exec_mem_mmio) ||
+                         mmio_ready) begin
                 exec_valid <= 1'b0;
                 pc <= pc + 1'b1;
 
@@ -222,7 +247,10 @@ module oasis_core(
 
                     `OASIS_CLASS_MEM: begin
                         case (exec_mem_op)
-                            `OASIS_MEM_MVF: out <= mem_out;
+                            `OASIS_MEM_MVF: out <= exec_mem_mmio ?
+                                                   (mmio_error ?
+                                                    {`OASIS_XLEN{1'b0}} : mmio_rdata) :
+                                                   mem_out;
                             `OASIS_MEM_MVT: out <= reg_data_a;
                             `OASIS_MEM_MSI: out <= exec_intermed;
                             default: out <= {`OASIS_XLEN{1'b0}};

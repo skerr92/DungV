@@ -1,0 +1,61 @@
+; Read BMA530 CHIP_ID (register 0x00) over I2C at address 0x18.
+; The sensor deliberately NACKs its first I2C read after power-up while it
+; selects I2C mode, so perform one throwaway transaction before validation.
+
+; First/throwaway register read.
+MSI io:[0x030], 0x0001
+MVI r1, 0x0030
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MVI r1, 0x0000
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MSI io:[0x030], 0x0001
+MVI r1, 0x0031
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MSI io:[0x030], 0x0018
+MVF r2, io:[0x032]
+MSI io:[0x030], 0x0002
+
+; Clear the sticky NACK flag, then continuously poll CHIP_ID so activity remains
+; visible on a scope or logic analyzer after FPGA programming has completed.
+MSI io:[0x033], 0x0002
+poll:
+MSI io:[0x033], 0x0002
+MSI io:[0x030], 0x0001
+MVI r1, 0x0030
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MVI r1, 0x0000
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MSI io:[0x030], 0x0001
+MVI r1, 0x0031
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MSI io:[0x030], 0x0018
+MVF r2, io:[0x032]
+MSI io:[0x030], 0x0002
+MVF r4, io:[0x033]
+
+; Publish 0xE0ss diagnostics, where ss is I2C_STATUS. Bit 1 means a NACK.
+MVI r5, 0xe000
+ADD r5, r4
+MVV r5, r5
+MVV r5, r5
+MVV r5, r5
+MVV r5, r5
+
+; Preserve the received byte in failure output: 0xDExx means CHIP_ID read xx.
+MVI r3, 0x00c2
+JEQ r2, r3, report
+MVI r6, 0xde00
+ADD r6, r2
+MVV r2, r6
+report:
+MVV r2, r2
+MVV r2, r2
+MVV r2, r2
+MVV r2, r2
+JMP poll

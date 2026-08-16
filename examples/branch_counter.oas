@@ -10,5 +10,5 @@ JEQ r1, r3, done
 JMP loop
 
 done:
-MVT r1, [0x002]
+MVT r1, mem:[0x002]
 NOP

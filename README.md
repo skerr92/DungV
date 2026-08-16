@@ -15,15 +15,18 @@ The current DungV RTL implements:
 - 8-bit program counter
 - ALU operations: add, subtract, and, or, xor, shifts, rotates, not, multiply
 - Register moves, immediate loads, memory loads, memory stores, and jumps
+- OASIS v1.0 `{mmio, addr11}` operations with a stalling peripheral bus
+- Hardware-verified GPIO, RGB PWM, UART, and open-drain I2C peripherals
 
-See [spec/oasis-v0.1.md](spec/oasis-v0.1.md) for the frozen OASIS v0.1
-instruction encoding and architectural state.
+See the pinned [`OASIS/`](OASIS/) submodule for the active v1.0 candidate and
+[docs/oasis-compatibility.md](docs/oasis-compatibility.md) for implementation
+status. The local v0.1 specification is retained only as historical context.
 
 ## Repository Layout
 
 | Path | Purpose |
 | ---- | ------- |
-| `spec/` | Local OASIS v0.1 draft snapshot used by DungV |
+| `spec/` | Historical local OASIS v0.1 snapshot |
 | `rtl/dungv/` | DungV RTL, split by implementation responsibility |
 | `rtl/dungv/include/` | Shared OASIS/DungV width and opcode definitions |
 | `asm/` | Notes for using the OASIS assembler with DungV |
@@ -45,15 +48,15 @@ This assembles `examples/*.oas` into `.build/examples/*.mem` and emits OASIS
 programming scripts as `.build/examples/*.dap16` and
 `.build/examples/*.spi16`.
 
-Generate OASIS Base-16 v0.1 compliance program images:
+Generate OASIS Base-16 v1.0 compliance program images:
 
 ```sh
 make compliance
 ```
 
 This filters the OASIS submodule compliance corpus to
-`oasis-base16-v0.1-draft` and emits `.oas` plus `.mem` files under
-`.build/compliance/base16-v0.1/`.
+`oasis-base16-v1.0` and emits `.oas` plus `.mem` files under
+`.build/compliance/base16-v1.0/`.
 
 C examples require an installed OASIS toolchain:
 
@@ -61,13 +64,28 @@ C examples require an installed OASIS toolchain:
 OASIS_TOOLCHAIN_PREFIX=/path/to/oasis16 make examples-c
 ```
 
-The current DungV RTL targets Base-16 v0.1. C output from the toolchain uses the
-Base-16T calling-convention instructions, so those examples are useful
-toolchain artifacts before they are runnable on this RTL.
+The current DungV RTL is crossing the Base-16 v1.0 compatibility boundary. C
+output uses Base-16T calling-convention instructions, so those examples remain
+toolchain artifacts until the class `00` implementation milestone is complete.
 
 See [docs/spi-programming.md](docs/spi-programming.md) for the FPGA programming
 interface and [docs/rpga-feather.md](docs/rpga-feather.md) for RPGA Feather
 bring-up.
+
+## Verified RPGA Peripherals
+
+The current iCE5LP4K build has been exercised on RPGA hardware:
+
+| Peripheral | MMIO words | Hardware result |
+| ---------- | ---------- | --------------- |
+| GPIO | `0x000`–`0x001` | Routed output transitions observed from OASIS software |
+| RGB PWM | `0x010`–`0x014` | CPU-driven R→G→B rainbow fade observed on the FPGA LED |
+| UART | `0x020`–`0x022` | Repeated 115200-baud CPU-mediated echo passed |
+| I2C | `0x030`–`0x034` | BMA530 at address `0x18` returned CHIP_ID `0xC2` |
+
+These results verify that Base-16 v1.0 MMIO instructions reach real,
+variable-latency peripherals through the DungV request/completion interface.
+See [docs/peripheral-bus.md](docs/peripheral-bus.md) for the register contract.
 
 ## Building
 

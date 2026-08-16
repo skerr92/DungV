@@ -1,20 +1,18 @@
 # RPGA Feather iCE5LP4K pin constraints.
 # Source pin map mirrored from the sister ice40_spi_io_expander/common/io.pcf.
 
-# Sideband pins
-# clk/data_out form a DungV serial debug stream from FPGA to RP2040.
-# enable remains an RP2040-controlled DungV reset/programming gate.
+# Existing sideband debug/reset interface.
 set_io clk 2
 set_io enable 3
 set_io data 4
 set_io data_out 6
 
-# DungV status outputs. Remap these to whichever RPGA Feather pins you expose.
-set_io STATUS_ALU 13
-set_io STATUS_OP 20
-set_io STATUS_MEM 39
-set_io STATUS_RUN 40
-set_io HEARTBEAT 41
+# Open-drain I2C wiring to the BMA530 breakout.
+set_io I2C_SCL 13
+set_io I2C_SDA 20
+set_io RGB0 39
+set_io RGB1 40
+set_io RGB2 41
 
 # SPI from RP2040 to FPGA
 set_io SPI_SS 16

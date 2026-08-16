@@ -1,0 +1,28 @@
+; Exercise the first OASIS v1.0 MMIO peripheral.
+; GPIO_OUT is io:[0x000]. Bits 0/1 reach RP2040 D3/D8. Each pattern is held
+; long enough for CircuitPython polling.
+start:
+MVI r1, 1
+
+pattern_1:
+MSI io:[0x000], 0x0001
+MVI r2, 0x0100
+delay_1_outer:
+MVI r3, 0xffff
+delay_1_inner:
+SUB r3, r1
+JNE r3, r0, delay_1_inner
+SUB r2, r1
+JNE r2, r0, delay_1_outer
+
+pattern_2:
+MSI io:[0x000], 0x0002
+MVI r2, 0x0100
+delay_2_outer:
+MVI r3, 0xffff
+delay_2_inner:
+SUB r3, r1
+JNE r3, r0, delay_2_inner
+SUB r2, r1
+JNE r2, r0, delay_2_outer
+JMP pattern_1

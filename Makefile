@@ -13,7 +13,8 @@ C_SOURCES := $(wildcard examples/*.c)
 C_ELFS := $(patsubst examples/%.c,$(BUILD_DIR)/examples/%.elf,$(C_SOURCES))
 C_IMAGES := $(patsubst examples/%.c,$(BUILD_DIR)/examples/%.dap16,$(C_SOURCES))
 
-.PHONY: examples examples-asm examples-c compliance compliance-base16 check clean
+.PHONY: examples examples-asm examples-c compliance compliance-base16-v1 \
+	compliance-base16-v0.1 check clean
 
 examples: examples-asm examples-programming
 
@@ -23,9 +24,16 @@ examples-programming: $(ASM_DAP_IMAGES) $(ASM_SPI_IMAGES)
 
 examples-c: $(C_IMAGES)
 
-compliance: compliance-base16
+compliance: compliance-base16-v1
 
-compliance-base16:
+compliance-base16-v1:
+	python3 tools/generate_compliance_programs.py \
+		--source-dir $(OASIS_DIR)/tests/compliance \
+		--out-dir $(BUILD_DIR)/compliance/base16-v1.0 \
+		--profile oasis-base16-v1.0 \
+		--assembler $(OASIS_DIR)/tools/oasis_asm.py
+
+compliance-base16-v0.1:
 	python3 tools/generate_compliance_programs.py \
 		--source-dir $(OASIS_DIR)/tests/compliance \
 		--out-dir $(BUILD_DIR)/compliance/base16-v0.1 \

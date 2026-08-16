@@ -1,0 +1,6 @@
+; Blocking UART echo at the reset-default 115200 baud, 8-N-1.
+; DATA reads wait for a received byte; DATA writes wait for TX capacity.
+echo:
+MVF r1, io:[0x020]
+MVT r1, io:[0x020]
+JMP echo

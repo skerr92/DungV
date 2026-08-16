@@ -1,15 +1,16 @@
 # OASIS v0.1 Compliance
 
-DungV consumes the OASIS v0.1 compliance corpus through the `OASIS/` submodule.
-Generate DungV-readable assembly and instruction-memory images with:
+This file records the historical OASIS v0.1 compliance flow. DungV now consumes
+the active OASIS v1.0 corpus through the `OASIS/` submodule. Generate the current
+DungV-readable assembly and instruction-memory images with:
 
 ```sh
 make compliance
 ```
 
-The current compliance target is `oasis-base16-v0.1-draft`. Base-16T
-toolchain-instruction tests are not included yet because DungV does not
-implement class `00` instructions.
+The default target is `oasis-base16-v1.0`; the historical target remains
+available as `make compliance-base16-v0.1`. Base-16T tests are not included yet
+because DungV does not implement class `00` instructions.
 
 Each instruction should have at least one passing test program and one edge-case
 test where applicable.

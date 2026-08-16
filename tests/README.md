@@ -22,12 +22,12 @@ Recommended first programs:
 ## OASIS Submodule Compliance
 
 DungV consumes OASIS compliance programs from the pinned `OASIS/` submodule.
-Generate the Base-16 v0.1 program images with:
+Generate the Base-16 v1.0 program images with:
 
 ```sh
 make compliance
 ```
 
 Generated `.oas` and `.mem` files are written to
-`.build/compliance/base16-v0.1/`. Base-16T tests are intentionally excluded until
+`.build/compliance/base16-v1.0/`. Base-16T tests are intentionally excluded until
 DungV implements the class `00` toolchain instructions.

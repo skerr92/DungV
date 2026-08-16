@@ -10,6 +10,7 @@ module instr_decode(
     output reg [1:0] instr_class,
     output reg [3:0] oper,
     output reg [1:0] mem_op,
+    output reg mem_mmio,
     output reg [`OASIS_DATA_ADDR_WIDTH-1:0] mem_addr
 );
 
@@ -20,6 +21,7 @@ module instr_decode(
         regb = {`OASIS_REG_ADDR_WIDTH{1'b0}};
         intermed = {`OASIS_IMM_WIDTH{1'b0}};
         mem_op = 2'b00;
+        mem_mmio = 1'b0;
         mem_addr = {`OASIS_DATA_ADDR_WIDTH{1'b0}};
 
         case (instr_class)
@@ -47,9 +49,11 @@ module instr_decode(
                 if (instruction[29:28] == `OASIS_MEM_MVF ||
                     instruction[29:28] == `OASIS_MEM_MVT) begin
                     rega = instruction[27:22];
-                    mem_addr = instruction[21:13];
+                    mem_mmio = instruction[21];
+                    mem_addr = instruction[20:10];
                 end else if (instruction[29:28] == `OASIS_MEM_MSI) begin
-                    mem_addr = instruction[27:19];
+                    mem_mmio = instruction[27];
+                    mem_addr = instruction[26:16];
                     intermed = instruction[15:0];
                 end
             end

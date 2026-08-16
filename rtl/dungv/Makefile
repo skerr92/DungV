@@ -7,6 +7,10 @@ sources = board/top.v \
 	execute/alu.v \
 	memory/instr_mem.v \
 	memory/data_mem.v \
+	peripherals/gpio_mmio.v \
+	peripherals/pwm_mmio.v \
+	peripherals/uart_mmio.v \
+	peripherals/i2c_master_mmio.v \
 	programming/hard_spi_programmer.v \
 	programming/serial_debug_out.v \
 	registers/register_file.v
@@ -22,6 +26,14 @@ test:
 	vvp $(sim_build_dir)/alu_tb
 	iverilog -g2012 -Iinclude -o $(sim_build_dir)/decode_tb decode/instr_decode.v sim/testbenches/decode_tb.v
 	vvp $(sim_build_dir)/decode_tb
+	iverilog -g2012 -Iinclude -o $(sim_build_dir)/gpio_mmio_tb peripherals/gpio_mmio.v sim/testbenches/gpio_mmio_tb.v
+	vvp $(sim_build_dir)/gpio_mmio_tb
+	iverilog -g2012 -Iinclude -o $(sim_build_dir)/pwm_mmio_tb peripherals/pwm_mmio.v sim/testbenches/pwm_mmio_tb.v
+	vvp $(sim_build_dir)/pwm_mmio_tb
+	iverilog -g2012 -Iinclude -o $(sim_build_dir)/uart_mmio_tb peripherals/uart_mmio.v sim/testbenches/uart_mmio_tb.v
+	vvp $(sim_build_dir)/uart_mmio_tb
+	iverilog -g2012 -Iinclude -o $(sim_build_dir)/i2c_master_mmio_tb peripherals/i2c_master_mmio.v sim/testbenches/i2c_master_mmio_tb.v
+	vvp $(sim_build_dir)/i2c_master_mmio_tb
 
 prog: #for sram
 	iceprog -S $(filename).bin
