@@ -2,12 +2,14 @@
 
 ## Context Freshness
 Context ID: FRESH-001
-Last Verified Commit: 3425421a3b113d3e13b53f84e32a649007d5a94c
-Current HEAD: 3425421a3b113d3e13b53f84e32a649007d5a94c
+Last Verified Commit: 8eb775e8203df87369f76bf065b02fae21e79ecf
+Current HEAD: 8eb775e8203df87369f76bf065b02fae21e79ecf
 Generated: 2026-08-16
 Status:
-- DungV v1.0 Base-16 MMIO/peripheral milestone is committed and pushed at
-  `3425421`; OASIS verification docs are committed and pushed at `d7c830e`.
+- Partial: BMA530 XYZ-to-RGB stress-test source and CircuitPython diagnostics
+  are being added on top of verified commit `8eb775e`.
+Files requiring verification:
+- `examples/bma530_rgb_tilt.oas`, `circuitpython/code.py`, deployment docs.
 
 ## Purpose
 Durable, compact memory for OASIS ISA integration work in DungV.
@@ -15,8 +17,8 @@ Durable, compact memory for OASIS ISA integration work in DungV.
 ## Current Focus
 Context ID: ACTIVE-001
 Confidence: High; based on the pinned OASIS candidate and its integration guide.
-- Resume Base-16T `MCP`/scratch ABI work or the next digital peripheral after
-  the verified Base-16 MMIO milestone.
+- Validate a CPU-driven BMA530 XYZ-to-RGB stress test using I2C reads and atomic
+  PWM updates.
 
 ## Handoff
 Context ID: HANDOFF-001
@@ -24,7 +26,7 @@ Confidence: High.
 - Last known state: DungV adds a blocking 8-N-1 UART at MMIO `0x020`–`0x022`.
   RP2040 D8 TX reaches FPGA F20 RX; FPGA F13 TX reaches RP2040 D9 RX. F2/F3/F6
   retain debug/reset. The default clock is now 12 MHz for timing margin.
-- Next useful step: choose Base-16T integration or the next peripheral milestone.
+- Next useful step: assemble, test, deploy, and observe mapped XYZ diagnostics.
 - Validation: the I2C byte engine test, all RTL tests, assembly/images, full
   FPGA build, and BMA530 hardware transaction pass.
 
@@ -86,6 +88,7 @@ Confidence: Medium.
 - `rtl/dungv/peripherals/i2c_master_mmio.v`: blocking open-drain I2C byte engine.
 - `examples/uart_echo.oas`: three-instruction CPU-mediated byte echo loop.
 - `examples/i2c_bma530_id.oas`: double-read BMA530 CHIP_ID hardware test.
+- `examples/bma530_rgb_tilt.oas`: BMA530 100 Hz XYZ burst-to-atomic-RGB stress test.
 - `examples/pwm_rgb_rainbow.oas`: CPU-driven R→G→B→R fade demonstration.
 - `docs/peripheral-bus.md`: MMIO handshake contract.
 - `circuitpython/code.py`: RPGA programmer and BMA530 result/debug reader.
@@ -135,6 +138,14 @@ Confidence: Medium.
   with the raw received byte and `0xE0ss` with status/NACK/line-state bits.
 - Hardware returned `0xC2`, identifying the attached board as BMA530 rather
   than BMA580 and confirming I2C address `0x18`, repeated START, and byte read.
+- `bma530_rgb_tilt.oas` assembles to 182 instruction words/550 SPI16 frames.
+  It follows the Bosch 100 Hz HPM ±2 g setup, reads six XYZ bytes in one burst,
+  maps signed MSBs to doubled absolute magnitudes, and tags debug output as
+  A1/A2/A3. All RTL
+  tests, example generation, CircuitPython syntax, and diff checks pass.
+- Initial hardware output appeared mostly white because signed zero mapped to
+  PWM 128 on every axis. Mapping now uses doubled absolute axis magnitude, so
+  zero-g channels go dark and the gravity-aligned channel dominates.
 
 ## Changes
 | Date | Tags | Change | Files | Commit | Remote |
@@ -152,11 +163,11 @@ Confidence: Medium.
 | 2026-08-16 | `[i2c]` `[hardware]` `[bma530]` | Hardware returned CHIP_ID `0xC2` at address `0x18`, confirming the board is BMA530 and validating I2C end to end. | Example, CircuitPython, docs | Uncommitted | Not confirmed |
 | 2026-08-16 | `[v1.0]` `[mmio]` `[release]` | Committed and pushed the verified DungV Base-16 MMIO/peripheral milestone. | DungV implementation, tests, examples, docs | `3425421` | `origin/main` |
 | 2026-08-16 | `[oasis]` `[docs]` `[verification]` | Linked DungV as the verified direct-MMIO implementation while preserving Base-16T/P limitations. | OASIS README and implementation/MMIO/release docs | `d7c830e` | `origin/v1.0_source` |
+| 2026-08-16 | `[i2c]` `[pwm]` `[stress]` | Added a CPU-driven BMA530 XYZ burst reader that atomically maps axes to RGB PWM with tagged debug diagnostics. | BMA530 example, CircuitPython, RPGA/example docs | Uncommitted | Not confirmed |
 
 ## Open Threads
 Context ID: OPEN-001
 Confidence: High.
-- Decide whether to continue with Base-16T `MCP`/scratch ABI work or another
-  digitally focused MMIO peripheral.
+- Deploy and observe the BMA530 XYZ-to-RGB stress test on RPGA hardware.
 - Add executable core-level wait-state and error-path tests.
 - Implement Base-16T MCP/scratch behavior, then optional OASIS-16P as separate milestones.

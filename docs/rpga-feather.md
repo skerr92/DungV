@@ -44,7 +44,7 @@ Generate the OASIS program image:
 make examples
 ```
 
-This produces `.build/examples/i2c_bma530_id.spi16` along with the other
+This produces `.build/examples/bma530_rgb_tilt.spi16` along with the other
 example images.
 
 ## CIRCUITPY Files
@@ -55,12 +55,13 @@ Copy these files to the RPGA Feather CIRCUITPY drive:
 | ------ | --------------------- |
 | `circuitpython/code.py` | `/code.py` |
 | `rtl/dungv/top.bin` | `/top.bin` |
-| `.build/examples/i2c_bma530_id.spi16` | `/i2c_bma530_id.spi16` |
+| `.build/examples/bma530_rgb_tilt.spi16` | `/bma530_rgb_tilt.spi16` |
 
-`code.py` configures the FPGA, streams the BMA530 identification program over
-SPI, and observes the result through the F2/F6 debug link. `0x00c2` is reported
-as PASS and `0xdead` as FAIL. The program polls continuously so SCL/SDA traffic
-remains visible after startup.
+`code.py` configures the FPGA, streams the BMA530 XYZ-to-RGB program over SPI,
+and observes diagnostics through the F2/F6 debug link. The program configures
+100 Hz, ±2 g acceleration data, maps absolute X/Y/Z magnitude to red/green/blue
+PWM, and reports the mapped triplets. Setup and runtime I2C errors produce a
+steady error color plus a specific `0xde01`–`0xde03` diagnostic.
 
 ## I2C Wiring
 

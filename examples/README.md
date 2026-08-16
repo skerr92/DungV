@@ -19,6 +19,9 @@ DungV RTL implements:
 - `i2c_bma530_id.oas` performs the BMA530's required throwaway first I2C read,
   then continuously polls CHIP_ID `0xC2` and reports the result through
   debug output. Continuous polling keeps activity visible to test equipment.
+- `bma530_rgb_tilt.oas` configures the BMA530 for 100 Hz, ±2 g measurements,
+  bursts XYZ samples over I2C, and maps absolute axis magnitudes onto atomic RGB
+  PWM updates. Tagged debug values expose the three mapped axes.
 - `v1_0_full_sweep.oas` exercises the Base-16 v1.0 ALU, memory, branch, and
   loop behavior over most of the 256-word instruction memory.
 

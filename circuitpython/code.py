@@ -6,7 +6,7 @@ import oakdevtech_icepython
 
 
 BITSTREAM = "top.bin"
-DUNGV_PROGRAM_IMAGE = "i2c_bma530_id.spi16"
+DUNGV_PROGRAM_IMAGE = "bma530_rgb_tilt.spi16"
 DUNGV_SPI_BAUDRATE = 250_000
 
 spi = busio.SPI(clock=board.F_SCK, MOSI=board.F_MOSI, MISO=board.F_MISO)
@@ -58,7 +58,7 @@ try:
     dungv_program_spi16(DUNGV_PROGRAM_IMAGE)
 except OSError as exc:
     print("DungV program image not found:", DUNGV_PROGRAM_IMAGE, exc)
-    print("copy .build/examples/i2c_bma530_id.spi16 to CIRCUITPY")
+    print("copy .build/examples/bma530_rgb_tilt.spi16 to CIRCUITPY")
     raise
 
 # F13/F20 now belong exclusively to the FPGA's open-drain I2C bus. Observe
@@ -95,12 +95,27 @@ def debug_frame():
     return pc_low, value
 
 
+mapped_x = None
+mapped_y = None
+mapped_z = None
+print("waiting for BMA530 XYZ-magnitude-to-RGB diagnostics")
+
 while True:
     pc_low, value = debug_frame()
-    if value == 0x00C2:
-        print("BMA530 CHIP_ID PASS", "pc_low=", hex(pc_low), "chip_id=", hex(value))
-    elif (value & 0xFF00) == 0xDE00:
-        print("BMA530 CHIP_ID FAIL", "pc_low=", hex(pc_low), "received=", hex(value & 0xFF))
+    if value == 0xDE01:
+        print("BMA530 RGB FAIL", "CHIP_ID mismatch")
+    elif value == 0xDE02:
+        print("BMA530 RGB FAIL", "health status")
+    elif value == 0xDE03:
+        print("BMA530 RGB FAIL", "runtime I2C NACK")
+    elif (value & 0xFF00) == 0xA100:
+        mapped_x = value & 0xFF
+    elif (value & 0xFF00) == 0xA200:
+        mapped_y = value & 0xFF
+    elif (value & 0xFF00) == 0xA300:
+        mapped_z = value & 0xFF
+        if mapped_x is not None and mapped_y is not None:
+            print("BMA530 |XYZ|->RGB", mapped_x, mapped_y, mapped_z)
     elif (value & 0xFF00) == 0xE000:
         status = value & 0xFF
         print("I2C STATUS", hex(status), "nack=", bool(status & 0x02),

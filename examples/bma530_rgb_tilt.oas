@@ -1,0 +1,234 @@
+; BMA530 XYZ-to-RGB stress test.
+;
+; BMA530 I2C address: 0x18 (write byte 0x30, read byte 0x31).
+; XYZ data: 0x18..0x1d, little endian signed 16-bit values.
+; The signed high byte is converted to absolute magnitude and doubled so a
+; near-zero axis is dark while approximately 1 g produces half-scale PWM.
+
+; Enable PWM while setup runs, initially dark.
+MSI io:[0x010], 0x0001
+MSI io:[0x011], 0x0000
+MSI io:[0x012], 0x0000
+MSI io:[0x013], 0x0000
+MSI io:[0x014], 0x0001
+
+; First/throwaway CHIP_ID read selects I2C and is intentionally NACKed.
+MSI io:[0x030], 0x0001
+MVI r1, 0x0030
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MVI r1, 0x0000
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MSI io:[0x030], 0x0001
+MVI r1, 0x0031
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MSI io:[0x030], 0x0018
+MVF r2, io:[0x032]
+MSI io:[0x030], 0x0002
+MSI io:[0x033], 0x0002
+
+; Read and validate CHIP_ID 0xc2.
+MSI io:[0x030], 0x0001
+MVI r1, 0x0030
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MVI r1, 0x0000
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MSI io:[0x030], 0x0001
+MVI r1, 0x0031
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MSI io:[0x030], 0x0018
+MVF r2, io:[0x032]
+MSI io:[0x030], 0x0002
+MVI r3, 0x00c2
+JNE r2, r3, setup_fail
+
+; Read HEALTH_STATUS 0x02 and require low nibble 0x0f.
+MSI io:[0x030], 0x0001
+MVI r1, 0x0030
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MVI r1, 0x0002
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MSI io:[0x030], 0x0001
+MVI r1, 0x0031
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MSI io:[0x030], 0x0018
+MVF r4, io:[0x032]
+MSI io:[0x030], 0x0002
+MVI r5, 0x000f
+AND r4, r5
+JNE r4, r5, health_fail
+
+; Disable accelerometer before configuration: ACC_CONF_0 = 0x00.
+MSI io:[0x030], 0x0001
+MVI r1, 0x0030
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MVI r1, 0x0030
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MVI r1, 0x0000
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MSI io:[0x030], 0x0002
+
+; ACC_CONF_1 = 0xa6: 100 Hz, normal filter, high-performance mode.
+MSI io:[0x030], 0x0001
+MVI r1, 0x0030
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MVI r1, 0x0031
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MVI r1, 0x00a6
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MSI io:[0x030], 0x0002
+
+; ACC_CONF_2 = 0x0c: +/-2 g, -60 dB IIR roll-off.
+MSI io:[0x030], 0x0001
+MVI r1, 0x0030
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MVI r1, 0x0032
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MVI r1, 0x000c
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MSI io:[0x030], 0x0002
+
+; Re-enable all accelerometer axes: ACC_CONF_0 = 0x0f.
+MSI io:[0x030], 0x0001
+MVI r1, 0x0030
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MVI r1, 0x0030
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MVI r1, 0x000f
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MSI io:[0x030], 0x0002
+
+sample:
+; Clear sticky NACK and select the first XYZ register, 0x18.
+MSI io:[0x033], 0x0002
+MSI io:[0x030], 0x0001
+MVI r1, 0x0030
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MVI r1, 0x0018
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+MSI io:[0x030], 0x0001
+MVI r1, 0x0031
+MVT r1, io:[0x031]
+MSI io:[0x030], 0x0004
+
+; Six-byte burst: ACK the first five bytes, NACK the final byte.
+MSI io:[0x030], 0x0008
+MVF r10, io:[0x032]
+MSI io:[0x030], 0x0008
+MVF r11, io:[0x032]
+MSI io:[0x030], 0x0008
+MVF r12, io:[0x032]
+MSI io:[0x030], 0x0008
+MVF r13, io:[0x032]
+MSI io:[0x030], 0x0008
+MVF r14, io:[0x032]
+MSI io:[0x030], 0x0018
+MVF r15, io:[0x032]
+MSI io:[0x030], 0x0002
+
+; Abort to magenta if any address or data byte was NACKed.
+MVF r6, io:[0x033]
+MVI r7, 0x0002
+AND r6, r7
+JNE r6, r0, bus_fail
+
+; Convert signed XYZ high bytes to absolute magnitudes. Zero-g axes map near
+; zero instead of half brightness, avoiding the previous mostly-white output.
+MVI r8, 0x0080
+MVI r9, 0x00ff
+MVI r16, 0x0001
+
+MVI r20, 0x0080
+AND r20, r11
+JEQ r20, r0, x_positive
+NOT r11
+ADD r11, r16
+x_positive:
+AND r11, r9
+ADD r11, r11
+
+MVI r20, 0x0080
+AND r20, r13
+JEQ r20, r0, y_positive
+NOT r13
+ADD r13, r16
+y_positive:
+AND r13, r9
+ADD r13, r13
+
+MVI r20, 0x0080
+AND r20, r15
+JEQ r20, r0, z_positive
+NOT r15
+ADD r15, r16
+z_positive:
+AND r15, r9
+ADD r15, r15
+MVT r11, io:[0x011]
+MVT r13, io:[0x012]
+MVT r15, io:[0x013]
+MSI io:[0x014], 0x0001
+
+; Tagged debug samples: 0xa1xx=X, 0xa2xx=Y, 0xa3xx=Z. A harmless STOP on an
+; already idle bus uses a temporary slow phase to hold each tag long enough for
+; the low-rate sideband debug stream to observe it.
+MSI io:[0x034], 0x4e20
+MVI r20, 0xa100
+ADD r20, r11
+MSI io:[0x030], 0x0002
+MVI r20, 0xa200
+ADD r20, r13
+MSI io:[0x030], 0x0002
+MVI r20, 0xa300
+ADD r20, r15
+MSI io:[0x030], 0x0002
+MSI io:[0x034], 0x0050
+JMP sample
+
+setup_fail:
+MVI r30, 0xde01
+JMP fail_red
+
+health_fail:
+MVI r30, 0xde02
+JMP fail_red
+
+bus_fail:
+; Runtime I2C failure is magenta and reports 0xde03.
+MSI io:[0x011], 0x00ff
+MSI io:[0x012], 0x0000
+MSI io:[0x013], 0x00ff
+MSI io:[0x014], 0x0001
+MVI r30, 0xde03
+JMP failed
+
+fail_red:
+MSI io:[0x011], 0x00ff
+MSI io:[0x012], 0x0000
+MSI io:[0x013], 0x0000
+MSI io:[0x014], 0x0001
+failed:
+MVV r30, r30
+JMP failed
