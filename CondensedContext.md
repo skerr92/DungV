@@ -2,12 +2,12 @@
 
 ## Context Freshness
 Context ID: FRESH-001
-Last Verified Commit: 70d4cc79ce45d1877735b125d07a2f969ee1a247
-Current HEAD: 70d4cc79ce45d1877735b125d07a2f969ee1a247
+Last Verified Commit: 3425421a3b113d3e13b53f84e32a649007d5a94c
+Current HEAD: 3425421a3b113d3e13b53f84e32a649007d5a94c
 Generated: 2026-08-16
 Status:
-- Ready to commit: OASIS v1.0 Base-16 MMIO and GPIO/PWM/UART/I2C peripherals
-  are implemented; BMA530 I2C is confirmed on hardware at address `0x18`.
+- DungV v1.0 Base-16 MMIO/peripheral milestone is committed and pushed at
+  `3425421`; OASIS verification docs are committed and pushed at `d7c830e`.
 
 ## Purpose
 Durable, compact memory for OASIS ISA integration work in DungV.
@@ -15,8 +15,8 @@ Durable, compact memory for OASIS ISA integration work in DungV.
 ## Current Focus
 Context ID: ACTIVE-001
 Confidence: High; based on the pinned OASIS candidate and its integration guide.
-- Commit and push the verified DungV v1.0/MMIO peripheral milestone, then update
-  the OASIS documentation with DungV as a verified implementation reference.
+- Resume Base-16T `MCP`/scratch ABI work or the next digital peripheral after
+  the verified Base-16 MMIO milestone.
 
 ## Handoff
 Context ID: HANDOFF-001
@@ -24,8 +24,7 @@ Confidence: High.
 - Last known state: DungV adds a blocking 8-N-1 UART at MMIO `0x020`–`0x022`.
   RP2040 D8 TX reaches FPGA F20 RX; FPGA F13 TX reaches RP2040 D9 RX. F2/F3/F6
   retain debug/reset. The default clock is now 12 MHz for timing margin.
-- Next useful step: commit/push DungV, then document the verified implementation
-  in OASIS.
+- Next useful step: choose Base-16T integration or the next peripheral milestone.
 - Validation: the I2C byte engine test, all RTL tests, assembly/images, full
   FPGA build, and BMA530 hardware transaction pass.
 
@@ -151,10 +150,13 @@ Confidence: Medium.
 | 2026-08-16 | `[uart]` `[hardware]` | Confirmed repeated CPU-mediated UART echo on RPGA hardware. | Validation only | Uncommitted | Not confirmed |
 | 2026-08-16 | `[i2c]` `[mmio]` `[rpga]` | Added an open-drain byte engine, F13/F20 routing, BMA580 double-read CHIP_ID test, CircuitPython debug validation, RTL test, and docs. | I2C RTL/test, board/PCF, example, CircuitPython, docs | Uncommitted | Not confirmed |
 | 2026-08-16 | `[i2c]` `[hardware]` `[bma530]` | Hardware returned CHIP_ID `0xC2` at address `0x18`, confirming the board is BMA530 and validating I2C end to end. | Example, CircuitPython, docs | Uncommitted | Not confirmed |
+| 2026-08-16 | `[v1.0]` `[mmio]` `[release]` | Committed and pushed the verified DungV Base-16 MMIO/peripheral milestone. | DungV implementation, tests, examples, docs | `3425421` | `origin/main` |
+| 2026-08-16 | `[oasis]` `[docs]` `[verification]` | Linked DungV as the verified direct-MMIO implementation while preserving Base-16T/P limitations. | OASIS README and implementation/MMIO/release docs | `d7c830e` | `origin/v1.0_source` |
 
 ## Open Threads
 Context ID: OPEN-001
 Confidence: High.
-- Deploy the renamed BMA530 test image and confirm its PASS label.
+- Decide whether to continue with Base-16T `MCP`/scratch ABI work or another
+  digitally focused MMIO peripheral.
 - Add executable core-level wait-state and error-path tests.
 - Implement Base-16T MCP/scratch behavior, then optional OASIS-16P as separate milestones.
